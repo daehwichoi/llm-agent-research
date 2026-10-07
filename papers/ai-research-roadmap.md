@@ -1,6 +1,6 @@
 # AI Research Roadmap — Essential Papers
 
-2026년 기준 주요 AI 연구 흐름을 **Reasoning / Agent / RL / World Model / Embodied AI / Synthetic Data / Evaluation**의 7개 축으로 나누고, 각 분야를 이해하기 위해 우선 읽을 논문을 정리합니다.
+2026년 기준 주요 AI 연구 흐름을 **Reasoning / Agent / RL / World Model / Embodied AI / Synthetic Data / Evaluation / Image Generation**의 8개 축으로 나누고, 각 분야를 이해하기 위해 우선 읽을 논문을 정리합니다.
 
 > 목표: 최신 논문을 단순 나열하기보다 `기초 아이디어 → 패러다임 전환 → 현재 연구 방향`의 흐름을 이해하는 것.
 
@@ -113,6 +113,52 @@ AI가 benchmark 문제를 잘 푸는 것과 실제 업무를 수행하는 능력
 
 ---
 
+## 8. Image Generation — Diffusion, DiT & Flow
+
+### 핵심 질문
+이미지를 어떻게 생성할 것인가, 그리고 CNN/U-Net 중심의 diffusion에서 Transformer 기반 생성 모델로 어떻게 발전했는가?
+
+> **ViT와 Diffusion은 경쟁 개념이 아닙니다.** ViT/Transformer는 backbone architecture이고 Diffusion은 generative process입니다. 현대 이미지 생성에서는 둘이 결합된 **Diffusion Transformer (DiT)** 계열이 핵심 흐름입니다.
+
+| 순서 | 논문 | 핵심 | 바로가기 |
+|---:|---|---|---|
+| 1 | Vision Transformer (ViT) | 이미지를 patch/token으로 변환해 Transformer로 처리하는 기반 | [📄 arXiv](https://arxiv.org/abs/2010.11929) |
+| 2 | **DDPM** ⭐ | noise에서 반복 denoising으로 이미지를 생성하는 diffusion의 대표적 출발점 | [📄 arXiv](https://arxiv.org/abs/2006.11239) |
+| 3 | **Latent Diffusion Models** ⭐ | pixel 대신 latent space에서 diffusion을 수행해 고해상도 생성을 효율화 | [📄 arXiv](https://arxiv.org/abs/2112.10752) |
+| 4 | **DiT — Scalable Diffusion Models with Transformers** ⭐ | U-Net 대신 Transformer를 diffusion backbone으로 사용 | [📄 arXiv](https://arxiv.org/abs/2212.09748) · [💻 GitHub](https://github.com/facebookresearch/DiT) |
+| 5 | Flow Matching for Generative Modeling | diffusion과 밀접한 continuous flow 기반 생성 학습의 핵심 방법론 | [📄 arXiv](https://arxiv.org/abs/2210.02747) |
+| 6 | Flow Straight and Fast: Rectified Flow | transport path를 직선화해 적은 step으로 생성하는 흐름 | [📄 arXiv](https://arxiv.org/abs/2209.03003) |
+
+**필수 읽기 순서:** `ViT → DDPM → Latent Diffusion → DiT → Flow Matching → Rectified Flow`
+
+### 아키텍처 흐름
+
+```text
+CNN / U-Net
+    ↓
+Diffusion + U-Net (DDPM)
+    ↓
+Latent Diffusion + U-Net
+    ↓
+Diffusion + Transformer (DiT)
+    ↓
+DiT + Flow Matching / Rectified Flow
+    ↓
+더 빠른 sampling / pixel-space generation / multimodal generation
+```
+
+### ViT vs DiT
+
+| 구분 | ViT | DiT |
+|---|---|---|
+| 주 목적 | 이미지 이해 / representation | 이미지 생성 |
+| 입력 | image patch | noisy image/latent patch + timestep/condition |
+| 출력 | class/feature representation | noise/velocity/flow 등 생성에 필요한 prediction |
+| 학습 목표 | classification/representation 등 | denoising / diffusion / flow objective |
+| 관계 | Transformer vision backbone의 기반 | ViT식 Transformer 구조를 생성 모델에 적용 |
+
+---
+
 # Recommended Core 10
 
 전체를 한 번에 읽기 부담스럽다면 아래 10편부터 시작합니다. **논문명을 누르거나 바로가기에서 즉시 원문으로 이동할 수 있습니다.**
@@ -136,10 +182,15 @@ Data Engineering / Data Platform / AI Agent 실무와 연결한다면:
 
 `ReAct → Toolformer → Reflexion → SWE-bench → SWE-agent → DeepSeek-R1`
 
-이후 관심에 따라 두 갈래로 확장합니다.
+이미지 생성 연구를 별도로 따라가려면:
+
+`ViT → DDPM → Latent Diffusion → DiT → Flow Matching → Rectified Flow`
+
+이후 관심에 따라 확장합니다.
 
 - **Agent self-improvement:** Self-Instruct → STaR → RL / Verifiable Reward
 - **Physical / interactive intelligence:** World Models → DreamerV3 → RT-2 → OpenVLA
+- **Generative Vision:** DiT → Flow Matching / Rectified Flow → efficient sampling / pixel-space / multimodal generation
 
 ---
 
@@ -159,6 +210,8 @@ RL / Verifiable Reward + Synthetic Data
 Self-improving Agents
 
 World Models ──→ Embodied AI / VLA
+
+ViT ──→ DDPM ──→ Latent Diffusion ──→ DiT ──→ Flow-based Generative Models
 ```
 
-핵심 변화는 **더 큰 모델 자체를 만드는 것**에서 **추론하고, 도구를 사용하고, 환경과 상호작용하고, 결과를 검증하며 개선되는 시스템을 만드는 것**으로 연구 범위가 확장되고 있다는 점입니다.
+핵심 변화는 **더 큰 모델 자체를 만드는 것**에서 **추론하고, 도구를 사용하고, 환경과 상호작용하고, 결과를 검증하며 개선되는 시스템을 만드는 것**으로 연구 범위가 확장되고 있다는 점입니다. 이미지 생성에서는 **U-Net 기반 diffusion에서 Transformer 기반 DiT와 flow 계열로 확장되는 흐름**을 함께 보는 것이 중요합니다.
